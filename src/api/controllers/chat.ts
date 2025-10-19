@@ -1043,10 +1043,6 @@ async function receiveStream(model: string, stream: any): Promise<any> {
     };
     const isSilentModel = model.indexOf('silent') != -1;
     const isThinkModel = model.indexOf('think') != -1 || model.indexOf('zero') != -1 || !model.includes('NOTHINKING');
-    // 自定义：如果chatMode为'zero'或不含'NOTHINKING'，启用think处理
-    if(chatMode === 'zero' || !model.includes('NOTHINKING')) {
-      isThinkModel = true;
-    }
     let thinkingText = "";
     let thinking = false;
     let toolCall = false;
@@ -1219,10 +1215,6 @@ function createTransStream(model: string, stream: any, endCallback?: Function) {
   const transStream = new PassThrough();
   const isSilentModel = model.indexOf('silent') != -1;
   const isThinkModel = model.indexOf('think') != -1 || model.indexOf('zero') != -1 || !model.includes('NOTHINKING');
-  // 自定义：如果chatMode为'zero'或不含'NOTHINKING'，启用think处理
-  if(chatMode === 'zero' || !model.includes('NOTHINKING')) {
-    isThinkModel = true;
-  }
   let content = "";
   let thinking = false;
   let toolCall = false;
