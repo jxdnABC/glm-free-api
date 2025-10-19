@@ -1052,6 +1052,7 @@ async function receiveStream(model: string, stream: any): Promise<any> {
     let lastExecutionOutput = "";
     let textOffset = 0;
     let refContent = "";
+    let meta_data: any = null;  // 自定义：全局定义 meta_data，确保 finish 时可用
     logger.info(`是否静默模型: ${isSilentModel}`);
     const parser = createParser((event) => {
       try {
@@ -1117,6 +1118,7 @@ async function receiveStream(model: string, stream: any): Promise<any> {
                 refContent = meta_data.metadata_list.reduce((meta, v) => {
                   return meta + `${v.title} - ${v.url}\n`;
                 }, refContent);
+                meta_data = partMetaData;  // 自定义：赋值全局 meta_data
               } else if (
                 type == "image" &&
                 _.isArray(image) &&
@@ -1177,21 +1179,22 @@ async function receiveStream(model: string, stream: any): Promise<any> {
         } else {
           if (thinkingText) {
             data.choices[0].message.content = `<think>\n${thinkingText}</think>\n\n${data.choices[0].message.content}`;
-          }
+          }          
+          logger.info('meta_data in finish:', JSON.stringify(meta_data || {}));  // 自定义：调试 meta_data（测试后可删）
           // 自定义：将【number†title】转换为[title](url)
-          if (meta_data && _.isArray(meta_data.metadata_list)) {
-            const metadataList = meta_data.metadata_list;  // [{title, url}, ...]
-            data.choices[0].message.content = data.choices[0].message.content.replace(/【(\d+)†([^】]+)】/g, (match, number, title) => {
-              const index = parseInt(number) - 1;  // number从1开始，数组从0
-              if (index >= 0 && index < metadataList.length) {
-                const url = metadataList[index].url || '#';  // 如果无url，用占位符
-                return `[${title.trim()}](${url})`;  // Markdown链接
-              }
-              return match;  // 未匹配，保留原文
+          if (meta_data && _.isArray(meta_data.metadata_list)) {    
+            const metadataList = meta_data.metadata_list;  // [{title, url}, ...]    
+            data.choices[0].message.content = data.choices[0].message.content.replace(/【(\d+)†([^】]+)】/g, (match, number, title) => {        
+              const index = parseInt(number) - 1;  // number从1开始，数组从0        
+              if (index >= 0 && index < metadataList.length) {            
+                const url = metadataList[index].url || '#';  // 如果无url，用占位符            
+                return `[${title.trim()}](${url})`;  // Markdown链接        
+              }        
+              return "";  // 超出范围或未匹配，移除    
             });
-          } else {
-            // 如果无metadata，移除【number†source】
-            data.choices[0].message.content = data.choices[0].message.content.replace(/【\d+†(来源|源|source)】/g, "");
+          } else {   
+            // 如果无metadata，移除所有【number†任意title】    
+            data.choices[0].message.content = data.choices[0].message.content.replace(/【\d+†[^】]+】/g, "");
           }
           resolve(data);  
         }
