@@ -1175,17 +1175,25 @@ async function receiveStream(model: string, stream: any): Promise<any> {
           );
           data.choices[0].message.content += chunk;
         } else {
-          if(thinkingText)
+          if (thinkingText) {
             data.choices[0].message.content = `<think>\n${thinkingText}</think>\n\n${data.choices[0].message.content}`;
-          data.choices[0].message.content =
-            data.choices[0].message.content.replace(
-              /【\d+†(来源|源|source)】/g,
-              ""
-            ) +
-            (refContent
-              ? `\n\n搜索结果来自：\n${refContent.replace(/\n$/, "")}`
-              : "");
-          resolve(data);
+          }
+          // 自定义：将【number†title】转换为[title](url)
+          if (meta_data && _.isArray(meta_data.metadata_list)) {
+            const metadataList = meta_data.metadata_list;  // [{title, url}, ...]
+            data.choices[0].message.content = data.choices[0].message.content.replace(/【(\d+)†([^】]+)】/g, (match, number, title) => {
+              const index = parseInt(number) - 1;  // number从1开始，数组从0
+              if (index >= 0 && index < metadataList.length) {
+                const url = metadataList[index].url || '#';  // 如果无url，用占位符
+                return `[${title.trim()}](${url})`;  // Markdown链接
+              }
+              return match;  // 未匹配，保留原文
+            });
+          } else {
+            // 如果无metadata，移除【number†source】
+            data.choices[0].message.content = data.choices[0].message.content.replace(/【\d+†(来源|源|source)】/g, "");
+          }
+          resolve(data);  
         }
       } catch (err) {
         logger.error(err);
