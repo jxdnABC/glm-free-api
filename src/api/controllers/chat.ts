@@ -1065,7 +1065,7 @@ async function receiveStream(model: string, stream: any): Promise<any> {
           data.id = result.conversation_id;
         if (result.status != "finish") {
           const text = result.parts.reduce((str, part) => {
-            const { status, content, meta_data } = part;
+            const { status, content, meta_data: partMetaData } = part;  // 自定义：重命名 meta_data 为 partMetaData，避免常量冲突
             if (!_.isArray(content)) return str;
             const partText = content.reduce((innerStr, value) => {
               const {
