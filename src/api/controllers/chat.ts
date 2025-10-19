@@ -1114,10 +1114,10 @@ async function receiveStream(model: string, stream: any): Promise<any> {
                 partMetaData && _.isArray(partMetaData.metadata_list) &&
                 !isSilentModel
               ) {
+                meta_data = partMetaData;  // 自定义：赋值全局 meta_data
                 refContent = meta_data.metadata_list.reduce((meta, v) => {
                   return meta + `${v.title} - ${v.url}\n`;
                 }, refContent);
-                meta_data = partMetaData;  // 自定义：赋值全局 meta_data
               } else if (
                 type == "image" &&
                 _.isArray(image) &&
