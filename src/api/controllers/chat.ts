@@ -235,6 +235,12 @@ async function createCompletion(
 
     let assistantId = /^[a-z0-9]{24,}$/.test(model) ? model : DEFAULT_ASSISTANT_ID;
     let chatMode = '';
+    
+    // 自定义：除GLM-4.6-NOTHINKING外，强制启用思考过程
+    if(!model.includes('NOTHINKING') && !chatMode) {     
+      chatMode = 'zero';  // 使用零思考推理模式，确保输出think部分       
+      logger.info('自定义：强制使用【推理】模型以输出思考过程');   
+    }
 
     if(model.indexOf('think') != -1 || model.indexOf('zero') != -1) {
       chatMode = 'zero';
@@ -355,6 +361,11 @@ async function createCompletionStream(
     let assistantId = /^[a-z0-9]{24,}$/.test(model) ? model : DEFAULT_ASSISTANT_ID;
     let chatMode = '';
 
+    // 自定义：除GLM-4.6-NOTHINKING外，强制启用思考过程
+    if(!model.includes('NOTHINKING') && !chatMode) { 
+      chatMode = 'zero';  // 使用零思考推理模式，确保输出think部分
+      logger.info('自定义：强制使用【推理】模型以输出思考过程');
+    }
     if(model.indexOf('think') != -1 || model.indexOf('zero') != -1) {
       chatMode = 'zero';
       logger.info('使用【推理】模型');
@@ -1031,7 +1042,11 @@ async function receiveStream(model: string, stream: any): Promise<any> {
       created: util.unixTimestamp(),
     };
     const isSilentModel = model.indexOf('silent') != -1;
-    const isThinkModel = model.indexOf('think') != -1 || model.indexOf('zero') != -1;
+    const isThinkModel = model.indexOf('think') != -1 || model.indexOf('zero') != -1 || !model.includes('NOTHINKING');
+    // 自定义：如果chatMode为'zero'或不含'NOTHINKING'，启用think处理
+    if(chatMode === 'zero' || !model.includes('NOTHINKING')) {
+      isThinkModel = true;
+    }
     let thinkingText = "";
     let thinking = false;
     let toolCall = false;
@@ -1203,7 +1218,11 @@ function createTransStream(model: string, stream: any, endCallback?: Function) {
   // 创建转换流
   const transStream = new PassThrough();
   const isSilentModel = model.indexOf('silent') != -1;
-  const isThinkModel = model.indexOf('think') != -1 || model.indexOf('zero') != -1;
+  const isThinkModel = model.indexOf('think') != -1 || model.indexOf('zero') != -1 || !model.includes('NOTHINKING');
+  // 自定义：如果chatMode为'zero'或不含'NOTHINKING'，启用think处理
+  if(chatMode === 'zero' || !model.includes('NOTHINKING')) {
+    isThinkModel = true;
+  }
   let content = "";
   let thinking = false;
   let toolCall = false;
