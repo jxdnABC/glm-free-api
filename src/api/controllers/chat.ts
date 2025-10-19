@@ -1117,8 +1117,7 @@ async function receiveStream(model: string, stream: any): Promise<any> {
               ) {
                 // **自定义修改：在流模式中不输出引用信息，以保证流内容纯净。**
                 return innerStr; 
-              }
-            } else if (
+              }else if (
                 type == "image" &&
                 _.isArray(image) &&
                 status == "finish"
