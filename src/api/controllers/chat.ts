@@ -1111,8 +1111,7 @@ async function receiveStream(model: string, stream: any): Promise<any> {
               }else if (
                 type == "quote_result" &&
                 status == "finish" &&
-                meta_data &&
-                _.isArray(meta_data.metadata_list) &&
+                partMetaData && _.isArray(partMetaData.metadata_list) &&
                 !isSilentModel
               ) {
                 refContent = meta_data.metadata_list.reduce((meta, v) => {
@@ -1179,22 +1178,21 @@ async function receiveStream(model: string, stream: any): Promise<any> {
         } else {
           if (thinkingText) {
             data.choices[0].message.content = `<think>\n${thinkingText}</think>\n\n${data.choices[0].message.content}`;
-          }          
+          }                   
           logger.info('meta_data in finish:', JSON.stringify(meta_data || {}));  // 自定义：调试 meta_data（测试后可删）
-          // 自定义：将【number†title】转换为[title](url)
-          if (meta_data && _.isArray(meta_data.metadata_list)) {    
-            const metadataList = meta_data.metadata_list;  // [{title, url}, ...]    
-            data.choices[0].message.content = data.choices[0].message.content.replace(/【(\d+)†([^】]+)】/g, (match, number, title) => {        
-              const index = parseInt(number) - 1;  // number从1开始，数组从0        
-              if (index >= 0 && index < metadataList.length) {            
-                const url = metadataList[index].url || '#';  // 如果无url，用占位符            
-                return `[${title.trim()}](${url})`;  // Markdown链接        
-              }        
-              return "";  // 超出范围或未匹配，移除    
-            });
-          } else {   
-            // 如果无metadata，移除所有【number†任意title】    
-            data.choices[0].message.content = data.choices[0].message.content.replace(/【\d+†[^】]+】/g, "");
+          // 移除正文中的所有【number†任意title】
+          data.choices[0].message.content = data.choices[0].message.content.replace(/【\d+†[^】]+】/g, "");
+          // 如果有 meta_data，结尾添加 Markdown 链接列表
+          if (meta_data && _.isArray(meta_data.metadata_list)) {
+            const metadataList = meta_data.metadata_list;  // [{title, url}, ...]
+            const sourceLinks = metadataList.map((item, index) => {
+              const title = item.title || 'source';  // 默认 title
+              const url = item.url || '#';  // 默认 url
+              return `- [${title}](${url})`; 
+            }).join('\n');   
+            if (sourceLinks) {      
+              data.choices[0].message.content += `\n\n**权威来源**\n${sourceLinks}`;    
+            }
           }
           resolve(data);  
         }
