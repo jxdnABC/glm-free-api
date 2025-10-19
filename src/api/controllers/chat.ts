@@ -1382,10 +1382,8 @@ function createTransStream(model: string, stream: any, endCallback?: Function) {
           }, "");
           return str + partText;
         }, "");
-        let chunk = text.substring(content.length - textOffset, text.length);
+        const chunk = text.substring(content.length - textOffset, text.length);
         if (chunk) {
-          // 移除正文中的所有引用符号（【1†source】、【1】等）
-          chunk = chunk.replace(/【\d+†[^】]+】/g, "").replace(/【\d+】/g, ""); // <--- 增加这行
           content += chunk;
           const data = `data: ${JSON.stringify({
             id: result.conversation_id,
