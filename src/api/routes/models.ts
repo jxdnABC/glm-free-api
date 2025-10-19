@@ -9,32 +9,32 @@ export default {
             return {
                 "data": [
                     {
-                        "id": "glm-3-turbo",
+                        "id": "GLM-4.6",
                         "object": "model",
                         "owned_by": "glm-free-api"
                     },
                     {
-                        "id": "glm-4",
+                        "id": "GLM-4.5V",
                         "object": "model",
                         "owned_by": "glm-free-api"
                     },
                     {
-                        "id": "glm-4-plus",
+                        "id": "GLM-4.5",
                         "object": "model",
                         "owned_by": "glm-free-api"
                     },
                     {
-                        "id": "glm-4v",
+                        "id": "GLM-4.6-SEARCH",
                         "object": "model",
                         "owned_by": "glm-free-api"
                     },
                     {
-                        "id": "glm-v1",
+                        "id": "GLM-4.6-ADVANCED-SEARCH",
                         "object": "model",
                         "owned_by": "glm-free-api"
                     },
                     {
-                        "id": "glm-v1-vision",
+                        "id": "GLM-4.6-NOTHINKING",
                         "object": "model",
                         "owned_by": "glm-free-api"
                     }
