@@ -1111,13 +1111,12 @@ async function receiveStream(model: string, stream: any): Promise<any> {
               }else if (
                 type == "quote_result" &&
                 status == "finish" &&
-                partMetaData && _.isArray(partMetaData.metadata_list) &&
+                partMetaData &&
+                _.isArray(partMetaData.metadata_list) &&
                 !isSilentModel
               ) {
-                meta_data = partMetaData;  // 自定义：赋值全局 meta_data
-                refContent = meta_data.metadata_list.reduce((meta, v) => {
-                  return meta + `${v.title} - ${v.url}\n`;
-                }, refContent);
+                meta_data = partMetaData;  // 自定义：赋值全局 meta_data   
+                refContent = "";  // 清空 refContent，不再使用文本列表
               } else if (
                 type == "image" &&
                 _.isArray(image) &&
@@ -1179,7 +1178,7 @@ async function receiveStream(model: string, stream: any): Promise<any> {
           if (thinkingText) {
             data.choices[0].message.content = `<think>\n${thinkingText}</think>\n\n${data.choices[0].message.content}`;
           }
-          logger.info('meta_data in finish:', JSON.stringify(meta_data || {}));  // 自定义：调试 meta_data
+          logger.info('meta_data in finish:', JSON.stringify(meta_data || {}));  // 自定义：调试 meta_data（测试后可删）
           // 统一清理与规范化
           let out = data.choices[0].message.content.trimStart();
           // 移除正文中的所有【number†任意title】
@@ -1189,17 +1188,17 @@ async function receiveStream(model: string, stream: any): Promise<any> {
           // 末尾如果出现重复中文句号，压成一个
           out = out.replace(/。{2,}$/g, "。");
           // 如果有 meta_data，结尾添加 Markdown 链接列表
-          if (meta_data && Array.isArray(meta_data.metadata_list) && meta_data.metadata_list.length) {
+          if (meta_data && _.isArray(meta_data.metadata_list) && meta_data.metadata_list.length) {
             const sourceLinks = meta_data.metadata_list
               .map((item) => {
                 const title = (item.title || "source").trim();
                 const url = item.url || "#";
-                return `- [${title}](${url})`;       
+                return `- [${title}](${url})`;
               })
-              .join("\n");     
-            out += `\n\n**权威来源**\n${sourceLinks}`;    
-          }    
-          data.choices[0].message.content = out;  
+              .join("\n");
+            out += `\n\n**权威来源**\n${sourceLinks}`;
+          }
+          data.choices[0].message.content = out;
           resolve(data);  
         }
       } catch (err) {
