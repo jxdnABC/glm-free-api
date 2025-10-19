@@ -1111,12 +1111,13 @@ async function receiveStream(model: string, stream: any): Promise<any> {
               }else if (
                 type == "quote_result" &&
                 status == "finish" &&
-                partMetaData &&
-                _.isArray(partMetaData.metadata_list) &&
+                meta_data &&
+                _.isArray(meta_data.metadata_list) &&
                 !isSilentModel
               ) {
-                meta_data = partMetaData;  // 自定义：赋值全局 meta_data   
-                refContent = "";  // 清空 refContent，不再使用文本列表
+                // **自定义修改：在流模式中不输出引用信息，以保证流内容纯净。**
+                return innerStr; 
+              }
               } else if (
                 type == "image" &&
                 _.isArray(image) &&
